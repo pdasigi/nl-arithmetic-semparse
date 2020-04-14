@@ -1,4 +1,5 @@
 import random
+import math
 
 class DataGenerator:
     """
@@ -53,10 +54,17 @@ class DataGenerator:
                 "denotation": operator["denotation"](first_argument["denotation"], second_argument["denotation"])}
 
 
-    def generate_data(self, num_expressions, min_num_operations=1, max_num_operations=10):
+    def generate_data(self,
+                      num_expressions,
+                      min_num_operations=1,
+                      max_num_operations=10,
+                      split_data=False,
+                      train_proportion=0.8,
+                      test_proportion=0.1):
         """
-        Returns ``num_expressions`` expressions, containing numbe rof operations in the range
-        ``(min_num_operations, max_num_operations)``.
+        Returns ``num_expressions`` expressions, containing number of operations in the range
+        ``(min_num_operations, max_num_operations)``. Optionally, you can also have the data split into
+        train, test, and dev sets, ans specify their proportions.
         """
         data = []
         while len(data) < num_expressions:
@@ -66,4 +74,14 @@ class DataGenerator:
                 data.append(expression)
             except ZeroDivisionError:
                 pass
-        return data
+
+        if not split_data:
+            return {"data": data}
+        test_size = math.ceil(test_proportion * num_expressions)
+        if train_proportion + test_proportion < 1.0:
+            dev_size = math.ceil((1 - (train_proportion + test_proportion)) * num_expressions)
+        else:
+            dev_size = 0
+        return {"test": data[:test_size],
+                "dev": data[test_size:test_size+dev_size],
+                "train": data[test_size+dev_size:]}
